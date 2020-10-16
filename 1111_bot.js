@@ -12,11 +12,10 @@ const headers = {
     'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
     'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
 };
-let url = 'https://www.1111.com.tw/'
+let url = 'https://www.1111.com.tw'
 let keyword = 'Node.js'
 let html 
 let arrLink = []
-let objOutLink = {}
 async function go(){
      await nightmare
     .goto(url, headers)
@@ -89,6 +88,40 @@ async function getLink(){
     
     console.log(arrLink.length)
 }
+async function getDetileInfo(){
+    for (let i of arrLink) {
+        try {
+            let inHtml = 
+                await nightmare
+                .goto(i, headers)
+                .wait(500)
+                .evaluate(() => {
+                    return document.documentElement.innerHTML;
+                })
+            
+            let top = $(inHtml)
+                .find('section#visual')
+            let main = $(inHtml)
+                .find('section#incontent>div>div.floatL.w65')
+
+            let name = top
+                .find('div#menu>div>div.logoTitle>h1').text()
+            let company = top
+                .find('div#menu>div>div.logoTitle>ul>li.ellipsis>a').text()
+            let companyUrl = 
+            url + top.find('div#menu>div>div.logoTitle>ul>li.ellipsis>a').attr('href')
+
+            let objDetaile = {
+                '職位名稱' : name,
+                '公司名稱' : company,
+                '公司連結' : companyUrl
+            }
+            console.log(objDetaile)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
 async function asyncArray(functionList){
     for(let func of functionList){
         await func();
@@ -100,7 +133,8 @@ async function asyncArray(functionList){
         await asyncArray([
             go,
             scroll,
-            getLink
+            getLink,
+            getDetileInfo
         ]).then(async ()=>{
             console.log('Done')
         });
