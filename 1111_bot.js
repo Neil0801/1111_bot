@@ -12,6 +12,7 @@ const headers = {
     'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
     'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
 };
+const reg = / \&nbsp /g
 let url = 'https://www.1111.com.tw'
 let keyword = 'Node.js'
 let html 
@@ -53,7 +54,9 @@ async function scroll(){
             console.log(`totalOffset = ${totalOffset}, innerHeightOfWindow = ${innerHeightOfWindow}`);
     
     
-            
+            if( totalOffset > 300 ){
+                break;
+            }
         }
     } catch (error) {
         console.log(error)
@@ -91,6 +94,7 @@ async function getLink(){
 async function getDetileInfo(){
     for (let i of arrLink) {
         try {
+            let arrContent = []
             let inHtml = 
                 await nightmare
                 .goto(i, headers)
@@ -109,12 +113,34 @@ async function getDetileInfo(){
             let company = top
                 .find('div#menu>div>div.logoTitle>ul>li.ellipsis>a').text()
             let companyUrl = 
-            url + top.find('div#menu>div>div.logoTitle>ul>li.ellipsis>a').attr('href')
+                url + top.find('div#menu>div>div.logoTitle>ul>li.ellipsis>a').attr('href')
+            
+            let link = await nightmare
+            .evaluate(() => {
+                return window.location.href;
+            })
 
+            let dest = $(inHtml).find('.floatL.w65')
+            let content = $(dest).find('article:nth-of-type(1)>ul>li>p').each(
+                (_,elm)=>{
+                    let text = elm.innerHTML
+                    // if(reg.test(text)== true){
+                    //     text.replace('&nbsp','')
+                    // }
+                    try {
+                        text.replace(/ \&nbsp /g,'')
+                    } catch (error) {
+                        console.log(error)
+                    }
+                    arrContent.push(text)
+                }
+            )
             let objDetaile = {
+                'link' : link,
                 '職位名稱' : name,
                 '公司名稱' : company,
-                '公司連結' : companyUrl
+                '公司連結' : companyUrl,
+                '描述' : arrContent
             }
             console.log(objDetaile)
         } catch (error) {
