@@ -12,7 +12,7 @@ const headers = {
     'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
     'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
 };
-const reg = / \&nbsp /g
+const reg = / &nbsp /g
 let url = 'https://www.1111.com.tw'
 let keyword = 'Node.js'
 let html 
@@ -121,33 +121,55 @@ async function getDetileInfo(){
             })
 
             let dest = $(inHtml).find('.floatL.w65')
-            let content = $(dest).find('article:nth-of-type(1)>ul>li>p').each(
+            let destMore = $(dest).find('article:nth-of-type(1)>ul.dataList')
+
+            let _content = $(dest).find('article:nth-of-type(1)>ul>li>p').each(
                 (_,elm)=>{
                     let text = elm.innerHTML
-                    // if(reg.test(text)== true){
-                    //     text.replace('&nbsp','')
-                    // }
-                    try {
-                        text.replace(/ \&nbsp /g,'')
-                    } catch (error) {
-                        console.log(error)
-                    }
                     arrContent.push(text)
                 }
             )
+            for(let i of arrContent){
+                try {
+                    i.replace(reg,'')
+                } catch (error) {
+                    continue
+                }
+            }
+            let place = destMore.find('li:nth-of-type(2)>div.listContent').text()
+            let time = destMore.find('li:nth-of-type(3)>div.listContent').text()
+            let rest = destMore.find('li:nth-of-type(4)>div.listContent').text()
+            let money = destMore.find('li:nth-of-type(5)>div.listContent').text()
+            let jb_type = destMore.find('li:nth-of-type(6)>div.listContent').text()
+            let jb_cat = destMore.find('li:nth-of-type(7)>div.listContent').text()
+            let person = destMore.find('li:nth-of-type(8)>div.listContent').text()
+            let date = destMore.find('li:nth-of-type(9)>div.listContent').text()
+            let nicee = destMore.find('ul>dd>ul>div').innerHTML
+
             let objDetaile = {
                 'link' : link,
                 '職位名稱' : name,
                 '公司名稱' : company,
                 '公司連結' : companyUrl,
-                '描述' : arrContent
+                '描述' : arrContent,
+                '地點' : place,
+                '上班時間' : time,
+                '休假' : rest,
+                '工作待遇' : money,
+                '工作性質' : jb_type,
+                '職務類別' : jb_type,
+                '需求人數' : person,
+                '到職日期' : date, 
+                '工作福利' : nicee
             }
             console.log(objDetaile)
+            objDetaile = {}
         } catch (error) {
             console.log(error)
         }
     }
 }
+
 async function asyncArray(functionList){
     for(let func of functionList){
         await func();
