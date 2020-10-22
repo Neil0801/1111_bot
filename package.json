@@ -2,7 +2,7 @@
   "name": "node_js_web_scraping",
   "version": "1.0.0",
   "description": "web scraping , using Node.js",
-  "main": "google_img_bot.js",
+  "main": "1111_bot.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/Neil0801/Node.js_web_scraping/tree/master/google_img_bot"
