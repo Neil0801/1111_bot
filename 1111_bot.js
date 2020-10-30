@@ -12,11 +12,20 @@ const headers = {
     'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
     'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
 };
+let arrayLength
 const reg = / &nbsp /g
 let url = 'https://www.1111.com.tw'
 let keyword = 'Node.js'
 let html 
 let arrLink = []
+let arrResult = []
+
+
+async function init(){
+    if( ! await fs.existsSync(`./1111_bot/downloads`) ){
+        await fs.mkdirSync(`./1111_bot/downloads`, {recursive: true});
+    }
+}
 async function go(){
      await nightmare
     .goto(url, headers)
@@ -33,6 +42,8 @@ async function go(){
     .wait(200)
     .click('input#searchjobGo')
 }
+
+
 async function scroll(){
     await nightmare
     .wait(200)
@@ -52,11 +63,6 @@ async function scroll(){
             .wait(500);
     
             console.log(`totalOffset = ${totalOffset}, innerHeightOfWindow = ${innerHeightOfWindow}`);
-    
-    
-            if( totalOffset > 300 ){
-                break;
-            }
         }
     } catch (error) {
         console.log(error)
@@ -88,12 +94,14 @@ async function getLink(){
     } catch (error) {
         console.log(error)
     }
-    
-    console.log(arrLink.length)
+    arrayLength = '數量' + arrLink.length
+    console.log(arrayLength)
 }
 async function getDetileInfo(){
+    let num = 1 
     for (let i of arrLink) {
         try {
+            console.log(num)
             let arrContent = []
             let inHtml = 
                 await nightmare
@@ -144,8 +152,24 @@ async function getDetileInfo(){
             let jb_cat = destMore.find('li:nth-of-type(7)>div.listContent').text()
             let person = destMore.find('li:nth-of-type(8)>div.listContent').text()
             let date = destMore.find('li:nth-of-type(9)>div.listContent').text()
-            let nicee = destMore.find('ul>dd>ul>div').innerHTML
+            let nicee = destMore.find('dd>ul>div').text()
 
+
+            let dest2 = dest.find('article:nth-of-type(2)>ul.dataList')
+            let need = []
+            dest2.find('li:nth-of-type(6)>div.listContent>p').each(
+                (_,elm)=>{
+                    let text = $(elm).text()
+                    need.push(text)
+                })
+            let _personNeed = {
+                '身份類別': dest2.find('li:nth-of-type(1)>div.listContent').text(),
+                '學歷限制' : dest2.find('li:nth-of-type(2)>div.listContent').text(),
+                '科系限制' : dest2.find('li:nth-of-type(3)>div.listContent>a').text(),
+                '工作經驗' : dest2.find('li:nth-of-type(4)>div.listContent').text(),
+                '電腦專長' : dest2.find('li:nth-of-type(5)>div.listContent').text(),
+                '附加條件' : need
+                }
             let objDetaile = {
                 'link' : link,
                 '職位名稱' : name,
@@ -157,19 +181,30 @@ async function getDetileInfo(){
                 '休假' : rest,
                 '工作待遇' : money,
                 '工作性質' : jb_type,
-                '職務類別' : jb_type,
+                '職務類別' : jb_cat,
                 '需求人數' : person,
                 '到職日期' : date, 
-                '工作福利' : nicee
+                '工作福利' : nicee,
+                '要求條件' : _personNeed
             }
-            console.log(objDetaile)
+            arrResult.push(objDetaile)
             objDetaile = {}
+            num = num + 1
         } catch (error) {
             console.log(error)
         }
     }
+    
+
 }
 
+async function final(){
+    await nightmare.end(function() {
+        console.log(`關閉 nightmare`);
+    });
+
+    await fs.writeFileSync(`./1111_bot/downloads/${arrayLength}.json`,JSON.stringify(arrResult,null,4))
+}
 async function asyncArray(functionList){
     for(let func of functionList){
         await func();
@@ -179,10 +214,12 @@ async function asyncArray(functionList){
 (
     async function (){
         await asyncArray([
+            init,
             go,
             scroll,
             getLink,
-            getDetileInfo
+            getDetileInfo,
+            final
         ]).then(async ()=>{
             console.log('Done')
         });
