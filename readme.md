@@ -30,7 +30,7 @@
 **請務必注意目錄位置和package.json是否存在!**
 
 ### 執行:
-    node google_img_bot.js
+    node 1111_bot.js
 **注意套件使否有安裝!**
 
 Made by Neil....enjoy!
