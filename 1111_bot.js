@@ -1,10 +1,9 @@
 const ng = require('nightmare');
-const nightmare = ng({ show: true, width: 1024, height: 960 });
+const nightmare = ng({ show: true, width: 1024, height: 960 }); //瀏覽器
 const { JSDOM } = require('jsdom');
 const fs = require('fs');
 const { window } = new JSDOM("");
-const $ = require('jquery')(window);
-const base64Img = require('base64-to-image')
+const $ = require('jquery')(window); //jq
 const util = require('util');
 const exec = util.promisify( require('child_process').exec );
 const headers = {
@@ -12,10 +11,10 @@ const headers = {
     'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
     'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
 };
-let arrayLength
+let arrayLength = '';
 const reg = / &nbsp /g
 let url = 'https://www.1111.com.tw'
-let keyword = 'Node.js'
+let keyword = 'Node.js' //職位名稱
 let html 
 let arrLink = []
 let arrResult = []
@@ -25,7 +24,7 @@ async function init(){
     if( ! await fs.existsSync(`./1111_bot/downloads`) ){
         await fs.mkdirSync(`./1111_bot/downloads`, {recursive: true});
     }
-}
+} 
 async function go(){
      await nightmare
     .goto(url, headers)
@@ -214,12 +213,12 @@ async function asyncArray(functionList){
 (
     async function (){
         await asyncArray([
-            init,
-            go,
-            scroll,
-            getLink,
-            getDetileInfo,
-            final
+            init, //初始化目錄
+            go, //進入1111
+            scroll, //滾動頁面取得動態生成資料
+            getLink, //取得每個職位連結
+            getDetileInfo, //職位詳細資料
+            final //寫入檔案
         ]).then(async ()=>{
             console.log('Done')
         });
